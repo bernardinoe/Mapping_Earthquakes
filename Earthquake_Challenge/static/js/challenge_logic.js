@@ -15,6 +15,14 @@ let satelliteStreets = L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/sate
 	accessToken: API_KEY
 });
 
+// Dark layer
+let dark = L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/dark-v10/tiles/{z}/{x}/{y}?access_token={accessToken}', {
+attribution: 'Map data © <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery (c) <a href="https://www.mapbox.com/">Mapbox</a>',
+    maxZoom: 18,
+    accessToken: API_KEY
+});
+
+
 // Create the map object with center, zoom level and default layer.
 let map = L.map('mapid', {
 	center: [40.7, -94.5],
@@ -25,16 +33,21 @@ let map = L.map('mapid', {
 // Create a base layer that holds all three maps.
 let baseMaps = {
   "Streets": streets,
-  "Satellite": satelliteStreets
+  "Satellite": satelliteStreets,
+  "Dark" : dark
 };
 
 // 1. Add a 2nd layer group for the tectonic plate data.
 let allEarthquakes = new L.LayerGroup();
+let tectonicPlate = new L.LayerGroup();
+let majorEarthquake = new L.LayerGroup();
 
 
 // 2. Add a reference to the tectonic plates group to the overlays object.
 let overlays = {
-  "Earthquakes": allEarthquakes
+  "Earthquakes": allEarthquakes,
+  "Tectonic Plates": tectonicPlate,
+  "Major Earthquake": majorEarthquake
 };
 
 // Then we add a control to the map that will allow the user to change which
@@ -107,6 +120,81 @@ d3.json("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geoj
   // Then we add the earthquake layer to our map.
   allEarthquakes.addTo(map);
 
+// ------------------------------------------------------------------------------------------  
+// 3. Retrieve the major earthquake GeoJSON data >4.5 mag for the week.
+// d3.json("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_week.geojson").then(function(data) {
+//   console.log(data);
+//   L.geoJSON(data, {
+//     style: StyleInfo2,
+//   }).addTo(majorEarthquake);
+
+d3.json("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_week.geojson").then(function(data) {
+
+
+// 4. Use the same style as the earthquake data.
+function styleInfo2(feature) {
+  return {
+    opacity: 1,
+    fillOpacity: 1,
+    fillColor: getColor2(feature.properties.mag),
+    color: "#000000",
+    radius: getRadius2(feature.properties.mag),
+    stroke: true,
+    weight: 0.5
+  };
+}  
+  
+// 5. Change the color function to use three colors for the major earthquakes based on the magnitude of the earthquake.
+function getColor2(magnitude2) {
+  if (magnitude2 > 6) {
+    return "#ea2c2c";
+  };
+  if (magnitude2 > 5) {
+    return "#ea822c";
+  };
+  if (magnitude2 < 5) {
+    return "#ee9c00";
+}  
+  
+// 6. Use the function that determines the radius of the earthquake marker based on its magnitude.
+function getRadius2(magnitude2) {
+  if (magnitude2 > 6) {
+    return magnitude2 * 4;
+  };
+  if (magnitude2 > 5) {
+    return magnitude2 * 4;
+  };
+  if (magnitude2 < 5) {
+    return magnitude2 * 4; 
+  }
+     
+}  
+  
+// 7. Creating a GeoJSON layer with the retrieved data that adds a circle to the map 
+// sets the style of the circle, and displays the magnitude and location of the earthquake
+// after the marker has been created and styled.
+L.geoJson(data, {
+  pointToLayer: function(feature, latlng) {
+    console.log(data);
+    return L.circleMarker(latlng);
+  },
+  style: styleInfo2,
+  onEachFeature: function(feature, layer) {
+    layer.bindPopup("Magnitude: " + feature.properties.mag + "<br>Location: " + feature.properties.place);
+  }
+}).addTo(majorEarthquake);    
+
+// });
+
+
+// 8. Add the major earthquakes layer to the map.
+majorEarthquake.addTo(map);
+
+
+// 9. Close the braces and parentheses for the major earthquake data.
+}});
+  
+// ------------------------------------------------------------------------------------------
   // Here we create a legend control object.
 let legend = L.control({
   position: "bottomright"
@@ -141,7 +229,17 @@ legend.onAdd = function() {
 
 
   // 3. Use d3.json to make a call to get our Tectonic Plate geoJSON data.
-  d3.json().then(() {
+  
+  d3.json("https://raw.githubusercontent.com/fraxen/tectonicplates/master/GeoJSON/PB2002_boundaries.json").then(function(data) {
+    console.log(data);
+    L.geoJSON(data, {
+      style: {
+        color:"red",
+        weight:3
+      },
+    }).addTo(tectonicPlate);
+
     
   });
+  tectonicPlate.addTo(map);
 });
