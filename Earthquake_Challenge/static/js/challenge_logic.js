@@ -147,27 +147,28 @@ function styleInfo2(feature) {
 // 5. Change the color function to use three colors for the major earthquakes based on the magnitude of the earthquake.
 function getColor2(magnitude2) {
   if (magnitude2 > 6) {
-    return "#ea2c2c";
+    return "#721400";
   };
   if (magnitude2 > 5) {
-    return "#ea822c";
+    return "#AB1F01";
   };
-  if (magnitude2 < 5) {
-    return "#ee9c00";
+  if (magnitude2 <= 5) {
+    return "#D82802";
 }  
+}
   
 // 6. Use the function that determines the radius of the earthquake marker based on its magnitude.
 function getRadius2(magnitude2) {
   if (magnitude2 > 6) {
-    return magnitude2 * 4;
+    return magnitude2 * 5;
   };
   if (magnitude2 > 5) {
-    return magnitude2 * 4;
+    return magnitude2 * 5;
   };
-  if (magnitude2 < 5) {
-    return magnitude2 * 4; 
+  if (magnitude2 <= 5) {
+    return magnitude2 * 5; 
   }
-     
+
 }  
   
 // 7. Creating a GeoJSON layer with the retrieved data that adds a circle to the map 
@@ -192,7 +193,7 @@ majorEarthquake.addTo(map);
 
 
 // 9. Close the braces and parentheses for the major earthquake data.
-}});
+});
   
 // ------------------------------------------------------------------------------------------
   // Here we create a legend control object.
